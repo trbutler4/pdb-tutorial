@@ -31,6 +31,21 @@ python --version
 
 Now that you know your version, let's get to it!
 
+### Nix development shell
+
+On x86_64 Linux with Nix flakes enabled, enter the pinned Python 3.4 environment:
+
+```shell
+nix develop
+python --version  # Python 3.4.8
+python main.py
+# Or start directly in the debugger:
+python -m pdb main.py
+```
+
+The committed `flake.lock` pins the historical nixpkgs release used by this shell.
+This legacy environment is intended only for the tutorial, not production use.
+
 
 ## What is the purpose of a debugger?
 
