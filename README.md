@@ -46,6 +46,19 @@ python -m pdb main.py
 The committed `flake.lock` pins the historical nixpkgs release used by this shell.
 This legacy environment is intended only for the tutorial, not production use.
 
+For Helix, start the editor inside the development shell:
+
+```shell
+nix develop
+hx --health python
+hx main.py
+```
+
+The shell includes `jedi-language-server`, and `.helix/languages.toml` selects it
+for this project. The server runs with its own modern Python while `python`
+remains Python 3.4.8 for running the tutorial. Editor analysis is not a guarantee
+of Python 3.4 compatibility. No formatter or debug adapter is configured.
+
 
 ## What is the purpose of a debugger?
 
@@ -749,4 +762,3 @@ mode at the uncaught exception.
 ## The End
 
 Congrats on making it to the end and thank you for following along in this tutorial! If you have any comments, critiques, or additional advanced examples, I'm open to pull requests.
-
