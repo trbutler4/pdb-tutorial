@@ -1,6 +1,0 @@
-[[language]]
-name = "python"
-language-servers = ["jedi"]
-
-[language-server.jedi]
-command = "jedi-language-server"

@@ -31,10 +31,6 @@ The Nix shell is configured for x86_64 Linux. `flake.lock` pins nixpkgs, and
 compile Python. Outside Nix, install Python 3.15.2 and confirm that `python`
 selects that interpreter before proceeding.
 
-The shell also includes Jedi for the project's Helix configuration. Launch
-`hx main.py` from inside `nix develop` to use it. Jedi has its own interpreter,
-independent of the Python used to run this tutorial.
-
 ## 2. How to read and reproduce the sessions
 
 Each of the three sessions below starts afresh with this command, from the

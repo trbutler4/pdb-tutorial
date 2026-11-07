@@ -21,7 +21,7 @@
     in {
       devShells.${system}.default = pkgs.mkShellNoCC {
         name = "pdb-tutorial-python315";
-        packages = [ python pkgs.python3Packages.jedi-language-server ];
+        packages = [ python ];
         shellHook = ''
           export PYTHONNOUSERSITE=1
         '';
