@@ -4,31 +4,42 @@ Learn to inspect a running program, step into functions, set breakpoints, and
 investigate exceptions using Python's built-in debugger. No third-party Python
 packages are needed.
 
-This walkthrough runs against **the files on this branch**, not an older version
-of the exercise. The summation bug is intentionally present: `answer()` counts
-dice instead of adding their values. The uppercase `Y` response and resetting
-round counters are also left for you to debug. `main.py` already has
-`breakpoint()`, so no setup edits are required before following the sessions.
+The included dice game asks players to add the values of five dice correctly
+for six consecutive turns. It contains intentional bugs to investigate with
+`pdb`. An inline `breakpoint()` is already included in `main.py`, so you can start
+the walkthrough without editing the source.
 
-## 1. Use the correct checkout and interpreter
+## 1. Set up the environment
 
-Clone the modern branch into its own directory:
+You need Git and Python 3.15.2. Alternatively, the included Nix development shell
+provides the Python interpreter on x86_64 Linux with flakes enabled.
+
+Clone the repository:
 
 ```sh
-git clone --branch update-python https://github.com/trbutler4/pdb-tutorial.git pdb-tutorial-modern
-cd pdb-tutorial-modern
+git clone https://github.com/trbutler4/pdb-tutorial.git
+cd pdb-tutorial
+```
+
+If using Nix, enter the development shell before running Python commands:
+
+```sh
 nix develop
+```
+
+Check which interpreter your shell uses:
+
+```sh
 python --version
 ```
 
-The version must be `Python 3.15.2`. If you already have the separate fork clone
-created during setup, enter that separate `pdb-tutorial-fork` directory instead
-of cloning again. Do not run these lessons from your original Python 3.4 checkout.
+The transcripts were recorded and are tested with `Python 3.15.2`. Use that
+version to reproduce the shown output and debugger stop positions.
 
-The Nix shell is configured for x86_64 Linux. `flake.lock` pins nixpkgs, and
-`flake.nix` pins the Python 3.15.2 source and checksum. Its first invocation may
-compile Python. Outside Nix, install Python 3.15.2 and confirm that `python`
-selects that interpreter before proceeding.
+The Nix shell pins its dependencies in `flake.lock` and the Python 3.15.2 source
+and checksum in `flake.nix`. The first `nix develop` may compile Python. If using
+a separately installed Python interpreter, make sure the `python` command selects
+it before continuing.
 
 ## 2. How to read and reproduce the sessions
 
@@ -242,8 +253,9 @@ instead of `1`. The exercise deliberately leaves that change for you to make.
 Complete the remaining baseline sessions before editing if you want their
 captured output to match exactly.
 
-The f-string in the session executes on the same Python 3.15.2 interpreter as
-the rest of the lesson. There is no separate legacy-interpreter requirement.
+The `!` prefix in the f-string example tells the debugger to execute a Python
+statement. `p die.show()` instead displays the string representation, including
+escaped newlines. Use `!print(die.show())` to display it as a multiline die.
 
 When quitting from the inline debugger, Python asks for confirmation. After `y`,
 the command-line debugger reports the script's exit status and restarts at line
@@ -461,8 +473,8 @@ additional steps required for the captured session above.
 From a clean, unedited exercise snapshot, run:
 
 ```sh
-nix develop -c python -m unittest discover -s tests -v
-nix develop -c python tools/render_walkthrough.py --check
+python -m unittest discover -s tests -v
+python tools/render_walkthrough.py --check
 ```
 
 The second command executes all three sessions and compares their entire output
@@ -473,7 +485,7 @@ a terminal would, but leaves the debugger, program, and source files unchanged.
 Maintainers can deliberately refresh the blocks after changing the exercise:
 
 ```sh
-nix develop -c python tools/render_walkthrough.py
+python tools/render_walkthrough.py
 ```
 
 After regeneration, also review the prose against the new stop positions and
@@ -487,5 +499,5 @@ solving the bugs.
 This fork builds on the original `spiside/pdb-tutorial` dice-game debugging
 exercise. Community translations of the original tutorial are available in
 Korean (`mingrammer/pdb-tutorial`), Chinese (`MartinLwx/pdb-tutorial`), and
-Russian (`0xfadeef/pdb-tutorial`). They are independent versions and are not the
-source for this branch's Python 3.15.2 transcripts.
+Russian (`0xfadeef/pdb-tutorial`). These translations cover the original tutorial
+and may differ from the Python 3.15.2 walkthrough here.
