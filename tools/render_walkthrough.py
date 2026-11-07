@@ -37,7 +37,7 @@ SESSIONS = {
         'n', 'n', 'n', 'p len(runner.dice)',
         'b 34', 'c', 'b', 'cl 1', 'n', '10', 'n', 's',
         'n', 'n', 'n', 'p die.value', '!print(f"die value: {die.value}")',
-        'p die.show()', 'r', 'p total',
+        'p die.show()', 'p sum(die.value for die in self.dice)', 'r', 'p total',
         'q', 'y', 'q',
     ],
     'commands': [
@@ -52,10 +52,11 @@ SESSIONS = {
 EXPECTED = {
     'inspect': [
         '-> breakpoint()', '(Pdb) p c\n0',
-        'die value: 6', 'answer()->20', '(Pdb) p total\n20',
+        'die value: 6', 'answer()->5', '(Pdb) p total\n5',
+        '(Pdb) p sum(die.value for die in self.dice)\n20',
     ],
     'commands': [
-        '(com) p total', 'guess?: 10\n0\n', '(Pdb) c\n6\n',
+        '(com) p total', 'guess?: 10\n0\n', '(Pdb) c\n1\n',
     ],
     'postmortem': [
         'dicegame.utils.UnnecessaryError: You actually called this function...',

@@ -19,12 +19,13 @@ class TutorialTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         return result.stdout
 
-    def test_progress_answer_is_preserved(self):
+    def test_exercise_keeps_intentional_answer_bug(self):
         from dicegame.runner import GameRunner
         runner = GameRunner()
         for die, value in zip(runner.dice, [1, 2, 3, 4, 5]):
             die.value = value
-        self.assertEqual(runner.answer(), 15)
+        self.assertEqual(runner.answer(), 5)
+        self.assertNotEqual(runner.answer(), sum(die.value for die in runner.dice))
 
     def test_breakpoint_can_be_disabled(self):
         # Keep the deliberately broken uppercase-Y path as a debugging exercise.

@@ -15,7 +15,7 @@ class GameRunner:
     def answer(self):
         total = 0
         for die in self.dice:
-            total += die.value
+            total += 1
         return total
 
     @classmethod

@@ -5,11 +5,10 @@ investigate exceptions using Python's built-in debugger. No third-party Python
 packages are needed.
 
 This walkthrough runs against **the files on this branch**, not an older version
-of the exercise. It preserves the progress copied into this fork: `answer()`
-already correctly adds `die.value`, and `main.py` already has `breakpoint()`.
-There are still bugs to investigate, including the uppercase `Y` response and
-round counters being reset. You do not need to reset files or insert a breakpoint
-to follow along.
+of the exercise. The summation bug is intentionally present: `answer()` counts
+dice instead of adding their values. The uppercase `Y` response and resetting
+round counters are also left for you to debug. `main.py` already has
+`breakpoint()`, so no setup edits are required before following the sessions.
 
 ## 1. Use the correct checkout and interpreter
 
@@ -46,8 +45,8 @@ import runs. At that prompt, enter the commands shown after `(Pdb)`. At a game
 prompt, enter the shown game answer instead. Do not type the prompts themselves.
 
 Every session begins with `!import random` and `!random.seed(0)`. This gives the
-same dice values, so you can compare the complete output, including the answer
-20. If you skip those commands, the dice values and totals will differ.
+same dice values: their actual sum is 20, but the buggy `answer()` returns 5.
+If you skip those commands, the dice values and their actual sum will differ.
 
 All transcript blocks below are captured from actual Python 3.15.2 execution.
 Only installation-dependent paths are replaced: `<repo>` means the checkout's
@@ -97,8 +96,9 @@ from top to bottom. The important transitions are:
 5. Advance to line 37 and use `s` to enter `answer()`. Three `n` commands reach
    the first addition at line 18. Inspect `die.value`, print it with an f-string,
    and inspect its ASCII representation.
-6. `r` finishes `answer()` and displays the returned value 20. `p total` confirms
-   it. This snapshot's summation is already correct.
+6. Compare the actual sum, computed with `sum(die.value for die in self.dice)`,
+   with the result of `answer()`. `r` displays the returned value 5, and `p total`
+   confirms it. The dice total is 20, so the summation is wrong.
 
 <!-- transcript:inspect:start -->
 ```text
@@ -209,19 +209,21 @@ Sigh. What is your guess?: 10
 -> for die in self.dice:
 (Pdb) n
 > <repo>/dicegame/runner.py(18)answer()
--> total += die.value
+-> total += 1
 (Pdb) p die.value
 6
 (Pdb) !print(f"die value: {die.value}")
 die value: 6
 (Pdb) p die.show()
 '---------\n|*     *|\n|*     *|\n|*     *|\n---------'
+(Pdb) p sum(die.value for die in self.dice)
+20
 (Pdb) r
 --Return--
-> <repo>/dicegame/runner.py(19)answer()->20
+> <repo>/dicegame/runner.py(19)answer()->5
 -> return total
 (Pdb) p total
-20
+5
 (Pdb) q
 Quitting pdb will kill the process. Quit anyway? [y/n] y
 The program exited via sys.exit(). Exit status: 1
@@ -231,6 +233,14 @@ The program finished and will be restarted
 (Pdb) q
 ```
 <!-- transcript:inspect:end -->
+
+### Identify the summation bug
+
+At line 18, `total += 1` increments the total once per die, regardless of its
+value. With five dice, the result is always 5. A fix would add `die.value`
+instead of `1`. The exercise deliberately leaves that change for you to make.
+Complete the remaining baseline sessions before editing if you want their
+captured output to match exactly.
 
 The f-string in the session executes on the same Python 3.15.2 interpreter as
 the rest of the lesson. There is no separate legacy-interpreter requirement.
@@ -247,9 +257,9 @@ breakpoint with `c`, then create the line-18 breakpoint and its command list in
 that active debugger. `commands 1` changes the prompt to `(com)` until `end`.
 
 At line 18, `total` has already been initialized, and the loop has selected a
-die, but that die's value has not yet been added. The command list prints `0`
-on the first hit and `6` on the second. `c` resumes from each hit. We clear the
-breakpoint before quitting.
+die, but that die has not yet been counted. The command list prints `0`
+on the first hit and `1` on the second. It is counting dice, not summing their
+values. `c` resumes from each hit. We clear the breakpoint before quitting.
 
 <!-- transcript:commands:start -->
 ```text
@@ -299,11 +309,11 @@ Round 1
 Sigh. What is your guess?: 10
 0
 > <repo>/dicegame/runner.py(18)answer()
--> total += die.value
+-> total += 1
 (Pdb) c
-6
+1
 > <repo>/dicegame/runner.py(18)answer()
--> total += die.value
+-> total += 1
 (Pdb) cl 1
 Deleted breakpoint 1 at <repo>/dicegame/runner.py:18
 (Pdb) q
@@ -373,7 +383,7 @@ Round 1
 ---------
 Sigh. What is your guess?: 10
 Sorry that's wrong
-The answer is: 20
+The answer is: 5
 Like seriously, how could you mess that up
 Wins: 0 Loses 1
 Would you like to play again?[Y/n]: Y
