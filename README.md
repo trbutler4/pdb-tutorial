@@ -1,7 +1,6 @@
 # `pdb` Tutorial
 
-The purpose of this tutorial is to teach you the basics of `pdb`, the **P**ython **D**e**B**ugger for [Python2](https://docs.python.org/2/library/pdb.html)
-and [Python3](https://docs.python.org/3/library/pdb.html).
+The purpose of this tutorial is to teach you the basics of `pdb`, the **P**ython **D**e**B**ugger in Python 3.15.2.
 It will also include some helpful tricks to make your debugging sessions a lot less stressful.
 
 --- 
@@ -21,9 +20,7 @@ feel free to add to the [ongoing issues thread](https://github.com/spiside/pdb-t
 ---
 
 
-The tutorial works best if you use Python 2.7 or Python 3.4 and I will highlight the
-differences between the two versions if a `pdb`
-command differs. To check what version of python you're using, type the following in your terminal:
+This tutorial targets Python 3.15.2. To check what version of Python you're using, type the following in your terminal:
 
 ```shell
 python --version
@@ -33,18 +30,28 @@ Now that you know your version, let's get to it!
 
 ### Nix development shell
 
-On x86_64 Linux with Nix flakes enabled, enter the pinned Python 3.4 environment:
+On x86_64 Linux with Nix flakes enabled, enter the Python 3.15 development environment:
 
 ```shell
 nix develop
-python --version  # Python 3.4.8
+python --version  # Python 3.15.2
 python main.py
 # Or start directly in the debugger:
 python -m pdb main.py
 ```
 
-The committed `flake.lock` pins the historical nixpkgs release used by this shell.
-This legacy environment is intended only for the tutorial, not production use.
+The committed `flake.lock` pins nixpkgs unstable. The shell overrides its Python
+3.15 package with the checksum-verified Python 3.15.2 source release and an
+adapted Nix MIME database patch. The first `nix develop` may compile Python.
+Jedi runs with its own Python runtime, independently of the tutorial runtime.
+
+Run the smoke tests with `nix develop -c python -m unittest discover -s tests -v`.
+
+**Current snapshot:** this branch preserves your tutorial progress: `answer()`
+already adds `die.value`, and `main.py` already contains `breakpoint()`. The
+walkthrough below describes the original broken exercise, so the first answer
+bug is already fixed in this snapshot. See [exercise reset](#this-forks-current-exercise-snapshot)
+if you want to start again in this separate clone.
 
 For Helix, start the editor inside the development shell:
 
@@ -55,9 +62,7 @@ hx main.py
 ```
 
 The shell includes `jedi-language-server`, and `.helix/languages.toml` selects it
-for this project. The server runs with its own modern Python while `python`
-remains Python 3.4.8 for running the tutorial. Editor analysis is not a guarantee
-of Python 3.4 compatibility. No formatter or debug adapter is configured.
+for this project. No formatter or debug adapter is configured.
 
 
 ## What is the purpose of a debugger?
@@ -90,7 +95,7 @@ it (or some version of source control) and you can find out details on how to in
 Once you have `git` installed, clone the repo by entering the following in your terminal:
 
 ```shell
-git clone https://github.com/spiside/pdb-tutorial
+git clone --branch update-python https://github.com/trbutler4/pdb-tutorial.git
 ```
 
 **NB**: If that didn't work for you, you should follow Github's [cloning tutorial](https://help.github.com/articles/cloning-a-repository/).
@@ -189,24 +194,17 @@ say that the program is broken so let's start the debugging process!
 
 ## PDB 101: Intro to `pdb`
 
-It's time to finally work with python's very own debugger `pdb`. The debugger is included in python's standard library and we
-use it the same way we would with any python library. First, we have to import the `pdb` module and then call one of its methods
-to add a debugging breakpoint in the program. The conventional way to do this is to add the import **and** call the method at the same line you
-would like to stop at. This is the full statement you would want to include:
-
-```python
-import pdb; pdb.set_trace()
-```
-
-Starting from version 3.7: The built-in function `breakpoint()` can be used instead of using `import pdb; pdb.set_trace()`
+It's time to finally work with Python's very own debugger `pdb`. The debugger is included in Python's standard library and we
+use it the same way we would with any Python library. The built-in `breakpoint()` is available without an import, and the
+`pdb` module is useful when you want to call APIs such as `pdb.pm()`. The conventional way to add an inline breakpoint is:
 
 ```python
 breakpoint()
 ```
 
-The methods [`set_trace()`](https://docs.python.org/3/library/pdb.html#pdb.set_trace) and [`breakpoint()`](https://docs.python.org/3/library/functions.html#breakpoint) hard code a breakpoint
-where the method was called. Let's use the `set_trace()` method for this tutorial since it is supported in all python versions. Let's try it now by opening up the `main.py` file and adding the breakpoint
-on line 8:
+`breakpoint()` has been available since Python 3.7 and is the preferred inline form in this tutorial. It uses the configured debugger hook and keeps the source focused on the debugging lesson.
+
+The methods [`set_trace()`](https://docs.python.org/3.15/library/pdb.html#pdb.set_trace) and [`breakpoint()`](https://docs.python.org/3.15/library/functions.html#breakpoint) enter the debugger in the calling frame. Since Python 3.13, an inline breakpoint stops immediately at the calling line, rather than first stopping on the following line. The preferred inline example here is `breakpoint()`.
 
 `file: main.py` 
 ```python
@@ -217,7 +215,7 @@ def main():
     print("Add the values of the dice")
     print("It's really that easy")
     print("What are you doing with your life.")
-    import pdb; pdb.set_trace() # add pdb here
+    breakpoint() # add pdb here
     GameRunner.run()
 
 
@@ -234,13 +232,15 @@ python main.py
 Add the values of the dice
 It's really that easy
 What are you doing with your life.
+> /Users/Development/pdb-tutorial/main.py(8)main()
+-> breakpoint()
+(Pdb) n
 > /Users/Development/pdb-tutorial/main.py(9)main()
 -> GameRunner.run()
 (Pdb) 
 ```
 
-There we go! We are now in the middle of the running program and we can start poking around. I think the first issue we should
-solve is the proper summation of the dice values.
+There we go! We are now in the middle of the running program and can start poking around. In Python 3.13 and later, the first prompt points at the `breakpoint()` call itself. Use `n` to execute that call and advance to `GameRunner.run()`, then use `s` to enter the method. I think the first issue we should solve is the proper summation of the dice values.
 
 If you are familiar with Python's interpreter, a lot of that knowledge can be transferred to the `pdb` debugger. However, there will be
 a couple gotchas that we will get to in the advanced section. Regardless, let's learn a couple commands that will help us solve the
@@ -289,7 +289,7 @@ Using `list`, we can examine the source code of the current file we are in. The 
 of lines you wish to see which can be helpful if you are in some weird 3rd party package and you are trying to figure out why they
 can't get string encoding working _true story_.
 
-**NB**: In Python 3.2 and above, you can type `ll` (long list) which shows you source code for the current function or frame. I use
+**NB**: You can type `ll` (long list), which shows source code for the current function or frame. I use
 this all the time instead of `l` since it's much better knowing which function you are in than an arbitrary 11 lines around your
 current position.
 
@@ -301,7 +301,7 @@ Let's try using `l` now. In your already open `pdb` prompt, type in `l` and look
   5         print("Add the values of the dice")
   6         print("It's really that easy")
   7         print("What are you doing with your life.")
-  8         import pdb; pdb.set_trace()
+  8         breakpoint()
   9  ->     GameRunner.run()
  10     
  11     
@@ -321,7 +321,7 @@ If we want to see the whole file, we can call the list function with the range 1
   5         print("Add the values of the dice")
   6         print("It's really that easy")
   7         print("What are you doing with your life.")
-  8         import pdb; pdb.set_trace()
+  8         breakpoint()
   9  ->     GameRunner.run()
  10     
  11     
@@ -343,7 +343,7 @@ s(tep)
 ```
 
 Your current line of execution should still be on `:9` and you can tell the current line by looking at the `->` outputted by the `list` command. 
-Let's call the `step` command and see what happens.
+The following transcript is retained for teaching the command flow. Its absolute paths and line numbers are illustrative and may reflect an older Python/debugger session. In a current session, prefer the arrow shown by `list` or `ll` and use function breakpoints when line numbers differ.
 
 ```
 (Pdb) s
@@ -352,9 +352,7 @@ Let's call the `step` command and see what happens.
 -> @classmethod
 ```
 
-Nice! We're currently in the `runner.py` file on line 21 which we can tell from this line:
-`> /Users/Development/pdb-tutorial/dicegame/runner.py(21)run()`.
-The problem is, we don't have much context so run the `list` command to checkout the method.
+The exact stop point depends on the Python version and debugger backend. If a legacy transcript stops on the decorator or function definition, treat its line numbers and paths as illustrative. Use `list` or `ll` to inspect the actual source, or set a function breakpoint such as `b GameRunner.run`. With Python 3.15.2, `n` from the inline breakpoint advances to `GameRunner.run()` and `s` enters the method.
 
 ```
 (Pdb) l
@@ -624,7 +622,7 @@ call the `return` command and get to the end of the function.
 To check the value of the returned `total` variable, you can call `total` here or look at the final value in line below the `--Return--` output. Now, to return back
 to the `run()` method, call the `next` command and you'll be back in your happy place.
 
-At this point, you can exit the `pdb` debugger by calling `exit()` **OR** `CTRL+D` (same as the Python REPL). With these five commands, you should be able to figure
+At this point, you can exit the `pdb` debugger by calling `q` (quit) or `CTRL+D` (same as the Python REPL). With these five commands, you should be able to figure
 out a couple other bugs and then follow along with a bit more advanced `pdb` examples.
 
 
@@ -667,7 +665,7 @@ commands [bpnumber]
 python -m pdb main.py
 ```
 
-Reach line `:8` and `s(tep)` into the `run()` method of the GameRunner class. Then, set up a breakpoint at `:17`.
+After starting with `python -m pdb main.py`, enter `c` to reach the inline breakpoint. Use `n` to advance past it, then `s` to enter `GameRunner.run()`. Use `ll` in `answer()` to locate its `for die in self.dice` loop. Set a breakpoint on that loop, which is line 17 in the original exercise, so `total` is initialized before the command runs and the breakpoint is hit repeatedly. The following transcript uses that original exercise and illustrative paths.
 ```
 > /Users/Development/pdb-tutorial/main.py(8)main()
 -> GameRunner.run()  #This is line 8 in main.py
@@ -711,12 +709,11 @@ The `commands` command executes upon reaching the breakpoint again. You can see 
 ### `pdb` Post Mortem
 
 ```
-pdb.post_mortem(traceback=None)
-    Enter post-mortem debugging of the given traceback object. If no traceback is given, it uses the one of the exception that is currently being handled
-    (an exception must be being handled if the default is to be used).
+pdb.post_mortem(t=None)
+    Enter post-mortem debugging of the given exception or traceback object. If no value is given, it uses the exception currently being handled.
 
 pdb.pm()
-    Enter post-mortem debugging of the traceback found in sys.last_traceback. 
+    Enter post-mortem debugging of the exception found in sys.last_exc.
 ```
 
 While both methods may look the same, `post_mortem() and pm()` differ by the traceback they are given. I commonly use `post_mortem()` in the `except` block.
@@ -752,12 +749,55 @@ Now, let's call the `pm()` method from the `pdb` module and see what happens.
 (Pdb) 
 ```
 
-Look at that! We recover from the point where the last exception was thrown and are placed in the `pdb` prompt. From here, we can examine the state the program was in
-before it crashed which will help you in your investigation.
+The debugger places you at the traceback location so you can inspect the state at the time of the exception. This is diagnostic post-mortem debugging. It does not recover or resume the crashed program. To keep running, fix the cause and start the program again, or use `python -m pdb main.py`, which can enter post-mortem mode and then restart the debugged program.
 
 **NB**: You can also start the `main.py` script using `python -m pdb main.py` and `continue` until an exception is thrown. Python will automatically enter `post_mortem`
 mode at the uncaught exception.
 
+
+## Modern `pdb` features in Python 3.15
+
+Python 3.13 adopted PEP 667 behavior for debugger assignments. In an optimized
+scope, assignments made at the `(Pdb)` prompt immediately affect the active
+scope. For example, after stopping in `answer()` you can try:
+
+```
+(Pdb) total = 100
+(Pdb) p total
+100
+```
+
+The debugger also provides convenience variables whose names start with `$`.
+They are temporary debugger globals and are cleared when execution resumes:
+
+```
+(Pdb) p $_frame
+(Pdb) p $_exception
+(Pdb) p $_retval
+```
+
+`$_frame` is the current frame, `$_exception` is the exception being raised,
+and `$_retval` is the return value when a frame is returning. Use `help` and
+`help p` inside the debugger to verify the commands and features available
+in your Python 3.15.2 session.
+
+## This fork's current exercise snapshot
+
+This fork currently contains progress made during the tutorial: `answer()` has
+already been corrected to add `die.value`, and `main.py` contains an inline
+`breakpoint()`. Therefore a fresh run may stop immediately and may not reproduce
+the original first walkthrough exactly.
+
+To restore the exercise file from this fork's current `origin/HEAD` for the
+initial walkthrough, run this command from the repository root:
+
+```shell
+git show origin/HEAD:dicegame/runner.py > dicegame/runner.py
+```
+
+Then remove the `breakpoint()` line from `main.py` if you want to reproduce the
+initial run exactly. This command is specific to this fork and is documented
+only as an exercise reset. The tutorial does not ask you to run it now.
 
 ## The End
 
