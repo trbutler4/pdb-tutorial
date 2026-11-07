@@ -50,7 +50,6 @@ Python statement inside the debugger. The first two commands make the dice match
 this walkthrough. `c` means **continue**: let the program run
 until it reaches the `breakpoint()` already included in `main.py`.
 
-<!-- transcript:start:start -->
 ```text
 > <repo>/main.py(1)<module>()
 -> from dicegame.runner import GameRunner
@@ -63,7 +62,6 @@ What are you doing with your life.
 > <repo>/main.py(8)main()
 -> breakpoint()
 ```
-<!-- transcript:start:end -->
 
 You're now paused inside `main()`. `<repo>` in the output stands for the path to
 your copy of the repository.
@@ -72,7 +70,6 @@ your copy of the repository.
 
 Enter `l 4, 9`. The `l` command **lists source code**; here it shows lines 4 to 9.
 
-<!-- transcript:source:start -->
 ```text
 (Pdb) l 4, 9
   4  	def main():
@@ -82,7 +79,6 @@ Enter `l 4, 9`. The `l` command **lists source code**; here it shows lines 4 to 
   8  ->	    breakpoint()
   9  	    GameRunner.run()
 ```
-<!-- transcript:source:end -->
 
 The arrow marks the current line. The next line calls `GameRunner.run()`, which
 is where the game logic lives.
@@ -94,7 +90,6 @@ Enter `n`, then `s`:
 - `n` means **next**. It advances from the inline breakpoint to the next line.
 - `s` means **step**. It follows the call into `GameRunner.run()`.
 
-<!-- transcript:enter:start -->
 ```text
 (Pdb) n
 > <repo>/main.py(9)main()
@@ -104,14 +99,12 @@ Enter `n`, then `s`:
 > <repo>/dicegame/runner.py(21)run()
 -> @classmethod
 ```
-<!-- transcript:enter:end -->
 
 `--Call--` means you've entered a function. In this Python version, that event
 points at the `@classmethod` decorator. The function body hasn't run yet.
 
 Enter `n` twice, then `p c`:
 
-<!-- transcript:next:start -->
 ```text
 (Pdb) n
 > <repo>/dicegame/runner.py(25)run()
@@ -122,7 +115,6 @@ Enter `n` twice, then `p c`:
 (Pdb) p c
 0
 ```
-<!-- transcript:next:end -->
 
 The first `n` reaches `c = 0`; the second executes it. `p c` **prints the value**
 of the variable. Don't enter `c` alone to inspect it: that would continue running
@@ -133,7 +125,6 @@ the program.
 Enter `n` twice to create the game runner. Then enter
 `p [die.value for die in runner.dice]` to see its dice values.
 
-<!-- transcript:create:start -->
 ```text
 (Pdb) n
 > <repo>/dicegame/runner.py(27)run()
@@ -144,7 +135,6 @@ Enter `n` twice to create the game runner. Then enter
 (Pdb) p [die.value for die in runner.dice]
 [6, 5, 3, 2, 4]
 ```
-<!-- transcript:create:end -->
 
 The dice are **6, 5, 3, 2, 4**. Their sum is **20**. Remember that number for the
 guess prompt.
@@ -164,7 +154,6 @@ line should be `guess = input("Sigh. What is your guess?: ")` on line 34.
 <details>
 <summary>Check the output, including the dice display</summary>
 
-<!-- transcript:input-break:start -->
 ```text
 (Pdb) b 34
 Breakpoint 1 at <repo>/dicegame/runner.py:34
@@ -201,7 +190,6 @@ Round 1
 (Pdb) cl 1
 Deleted breakpoint 1 at <repo>/dicegame/runner.py:34
 ```
-<!-- transcript:input-break:end -->
 
 </details>
 
@@ -210,14 +198,12 @@ Deleted breakpoint 1 at <repo>/dicegame/runner.py:34
 Enter `n` to execute the input line. When the **game** asks for your guess, enter
 `20`. This is game input, not a debugger command.
 
-<!-- transcript:guess:start -->
 ```text
 (Pdb) n
 Sigh. What is your guess?: 20
 > <repo>/dicegame/runner.py(35)run()
 -> guess = int(guess)
 ```
-<!-- transcript:guess:end -->
 
 You're back at `(Pdb)`, just before the guess is converted from text to an
 integer.
@@ -227,7 +213,6 @@ integer.
 Enter `n` to convert the guess. Then enter `s` to step into the `answer()` call
 on the comparison line.
 
-<!-- transcript:answer-call:start -->
 ```text
 (Pdb) n
 > <repo>/dicegame/runner.py(37)run()
@@ -237,12 +222,10 @@ on the comparison line.
 > <repo>/dicegame/runner.py(15)answer()
 -> def answer(self):
 ```
-<!-- transcript:answer-call:end -->
 
 Enter `n` three times to reach the first addition in the loop. Then use
 `p die.value` to inspect the die being processed.
 
-<!-- transcript:answer-body:start -->
 ```text
 (Pdb) n
 > <repo>/dicegame/runner.py(16)answer()
@@ -256,7 +239,6 @@ Enter `n` three times to reach the first addition in the loop. Then use
 (Pdb) p die.value
 6
 ```
-<!-- transcript:answer-body:end -->
 
 The die's value is **6**, but line 18 says **`total += 1`**. That looks suspicious:
 it counts each die instead of adding the number shown on it.
@@ -269,7 +251,6 @@ Then enter `r`, followed by `p total`.
 `r` means **return**: finish this function without stepping through the rest of
 its loop.
 
-<!-- transcript:return:start -->
 ```text
 (Pdb) p sum(die.value for die in self.dice)
 20
@@ -280,7 +261,6 @@ its loop.
 (Pdb) p total
 5
 ```
-<!-- transcript:return:end -->
 
 There's the first bug: the dice add up to **20**, but `answer()` returns **5**.
 It adds one for each of the five dice, regardless of their values.
@@ -298,7 +278,6 @@ you're returned to a debugger prompt at the line that raised the exception.
 <details>
 <summary>Check the exception output</summary>
 
-<!-- transcript:crash:start -->
 ```text
 (Pdb) c
 Sorry that's wrong
@@ -334,7 +313,6 @@ Running 'cont' or 'step' will restart the program
 > <repo>/dicegame/utils.py(11)i_just_throw_an_exception()
 -> raise UnnecessaryError("You actually called this function...")
 ```
-<!-- transcript:crash:end -->
 
 `<stdlib>` stands for Python's standard-library directory.
 
@@ -352,7 +330,6 @@ it: `GameRunner.run()`.
 Enter `p prompt` to inspect the replay response, followed by `l 55, 60` to read
 the condition that handles it.
 
-<!-- transcript:inspect-crash:start -->
 ```text
 (Pdb) p some_value
 "I don't know what you were expecting"
@@ -369,18 +346,15 @@ the condition that handles it.
  59  	            else:
  60  ->	                i_just_throw_an_exception()
 ```
-<!-- transcript:inspect-crash:end -->
 
 `prompt` is `'Y'`, but the condition accepts only lowercase `'y'` or an empty
 string. Uppercase `'Y'` falls into the exception branch. That's the second bug.
 
 Enter `q` to **quit** the debugger and return to your shell.
 
-<!-- transcript:quit:start -->
 ```text
 (Pdb) q
 ```
-<!-- transcript:quit:end -->
 
 ## Try the fixes
 
@@ -397,8 +371,7 @@ assume the answer is still 20.
 
 **One more bug to investigate:** play several rounds and watch the round number
 and win count. Why do they reset? Use what you've learned to inspect where a new
-`GameRunner` is created. The `solutions/` directory contains a reference version
-if you get stuck.
+`GameRunner` is created.
 
 ## Commands you've used
 
@@ -414,14 +387,6 @@ if you get stuck.
 | `r` | Run until the current function returns. |
 | `u` | Inspect the calling function's frame. |
 | `q` | Quit. |
-
-## Next steps
-
-- [Breakpoint command lists](docs/advanced.md): automatically inspect a variable
-  each time a breakpoint is hit.
-- [Contributing](CONTRIBUTING.md): run checks or regenerate the captured output.
-- [Full lesson transcript](docs/session.txt): the uninterrupted session without
-  the explanations.
 
 ## Credits
 
