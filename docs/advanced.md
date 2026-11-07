@@ -22,7 +22,7 @@ Enter `cl 1` to remove the breakpoint. Then quit with `q`, confirm with `y`, and
 enter `q` at the command-line debugger's restart prompt to return to the shell.
 
 <details>
-<summary>Complete captured session on Python 3.15.2</summary>
+<summary>Complete captured session on Python 3.14.8</summary>
 
 <!-- transcript:commands:start -->
 ```text

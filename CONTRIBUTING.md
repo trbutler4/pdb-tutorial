@@ -2,9 +2,9 @@
 
 ## Development environment
 
-Use Python 3.15.2. On x86_64 Linux with Nix flakes enabled, `nix develop` provides
-the pinned interpreter. `flake.lock` pins nixpkgs, and `flake.nix` pins the Python
-source release and checksum. The first shell invocation may compile Python.
+Use Python 3.14.8 to reproduce the captured output. On x86_64 Linux with Nix
+flakes enabled, `nix develop` provides the standard `python314` package.
+`flake.lock` pins the package collection for reproducibility.
 
 The main exercise deliberately contains bugs. Keep those bugs in place when
 maintaining the baseline. Reference fixes belong in `solutions/` or in the
@@ -12,7 +12,7 @@ lesson's suggested edits, not in the learner's starting code.
 
 ## Run checks
 
-From the repository root, using Python 3.15.2:
+From the repository root, using Python 3.14.8:
 
 ```sh
 python -m unittest discover -s tests -v
@@ -48,7 +48,7 @@ This updates:
 - The optional command-list example in `docs/advanced.md`.
 - `docs/session.txt`, the complete uninterrupted main lesson.
 
-All captured commands run on the real Python 3.15.2 debugger. A small input
+All captured commands run on the real Python 3.14.8 debugger. A small input
 wrapper echoes supplied commands as a terminal would. Internal capture markers
 split the output into steps; they are removed before rendering and introduce no
 extra debugger commands. All supplied input must be consumed, and expected

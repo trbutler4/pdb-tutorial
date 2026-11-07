@@ -1,4 +1,4 @@
-"""Capture the guided lesson on Python 3.15.2 and check its Markdown output."""
+"""Capture the guided lesson on Python 3.14.8 and check its Markdown output."""
 import argparse
 import os
 from pathlib import Path
@@ -100,8 +100,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    if sys.version_info[:3] != (3, 15, 2):
-        parser.error('Use Python 3.15.2, for example: nix develop -c python tools/render_walkthrough.py')
+    if sys.version_info[:3] != (3, 14, 8):
+        parser.error('Use Python 3.14.8, for example: nix develop -c python tools/render_walkthrough.py')
     lesson, full_lesson = capture(LESSON)
     advanced, _ = capture(ADVANCED)
     for expected in [
@@ -124,7 +124,7 @@ def main():
     if args.check:
         if stale:
             raise SystemExit('Captured output differs: ' + ', '.join(stale))
-        print('Guided lesson, advanced example, and full session match Python 3.15.2.')
+        print('Guided lesson, advanced example, and full session match Python 3.14.8.')
     else:
         for path, output in outputs.items():
             path.write_text(output)

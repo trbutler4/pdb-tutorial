@@ -9,7 +9,7 @@ open between steps, and leave source-code changes until the end.
 
 ## Set up
 
-You need Git and Python **3.15.2**, the version used for the output below.
+You need Git and Python **3.14**. The output below was recorded on Python 3.14.8.
 
 ```sh
 git clone https://github.com/trbutler4/pdb-tutorial.git
@@ -17,7 +17,7 @@ cd pdb-tutorial
 python --version
 ```
 
-Check that the last command prints `Python 3.15.2`.
+Check that the last command reports Python 3.14.
 
 <details>
 <summary>Using Nix instead of an installed Python</summary>
@@ -29,8 +29,7 @@ nix develop
 python --version
 ```
 
-Stay in this shell for the rest of the lesson. The first invocation may compile
-Python.
+Stay in this shell for the rest of the lesson.
 
 </details>
 
@@ -307,13 +306,13 @@ Like seriously, how could you mess that up
 Wins: 0 Loses 1
 Would you like to play again?[Y/n]: Y
 Traceback (most recent call last):
-  File "<stdlib>/pdb.py", line 3873, in main
+  File "<stdlib>/pdb.py", line 3656, in main
     pdb._run(target)
     ~~~~~~~~^^^^^^^^
-  File "<stdlib>/pdb.py", line 2770, in _run
+  File "<stdlib>/pdb.py", line 2566, in _run
     self.run(target.code)
     ~~~~~~~~^^^^^^^^^^^^^
-  File "<stdlib>/bdb.py", line 912, in run
+  File "<stdlib>/bdb.py", line 913, in run
     exec(cmd, globals, locals)
     ~~~~^^^^^^^^^^^^^^^^^^^^^^
   File "<string>", line 1, in <module>
