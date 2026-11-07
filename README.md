@@ -1,117 +1,56 @@
-# Debugging Python 3.15.2 with `pdb`
+# Learn `pdb` by debugging a dice game
 
-Learn to inspect a running program, step into functions, set breakpoints, and
-investigate exceptions using Python's built-in debugger. No third-party Python
-packages are needed.
+The game asks you to add five dice, but it rejects the right answer. You'll use
+Python's built-in debugger to find out why, then investigate a second bug in the
+replay prompt.
 
-The included dice game asks players to add the values of five dice correctly
-for six consecutive turns. It contains intentional bugs to investigate with
-`pdb`. An inline `breakpoint()` is already included in `main.py`, so you can start
-the walkthrough without editing the source.
+Follow the steps in order. They form **one debugging session**: keep the program
+open between steps, and leave source-code changes until the end.
 
-## 1. Set up the environment
+## Set up
 
-You need Git and Python 3.15.2. Alternatively, the included Nix development shell
-provides the Python interpreter on x86_64 Linux with flakes enabled.
-
-Clone the repository:
+You need Git and Python **3.15.2**, the version used for the output below.
 
 ```sh
 git clone https://github.com/trbutler4/pdb-tutorial.git
 cd pdb-tutorial
-```
-
-If using Nix, enter the development shell before running Python commands:
-
-```sh
-nix develop
-```
-
-Check which interpreter your shell uses:
-
-```sh
 python --version
 ```
 
-The transcripts were recorded and are tested with `Python 3.15.2`. Use that
-version to reproduce the shown output and debugger stop positions.
+Check that the last command prints `Python 3.15.2`.
 
-The Nix shell pins its dependencies in `flake.lock` and the Python 3.15.2 source
-and checksum in `flake.nix`. The first `nix develop` may compile Python. If using
-a separately installed Python interpreter, make sure the `python` command selects
-it before continuing.
+<details>
+<summary>Using Nix instead of an installed Python</summary>
 
-## 2. How to read and reproduce the sessions
-
-Each of the three sessions below starts afresh with this command, from the
-repository root:
+On x86_64 Linux with flakes enabled, the repository provides a pinned interpreter:
 
 ```sh
-PYTHON_COLORS=0 PYTHONBREAKPOINT=pdb.set_trace python -m pdb main.py
+nix develop
+python --version
 ```
 
-The environment settings disable colored output and explicitly select `pdb` for
-`breakpoint()`. The first `(Pdb)` prompt is at `main.py` line 1, **before** the
-import runs. At that prompt, enter the commands shown after `(Pdb)`. At a game
-prompt, enter the shown game answer instead. Do not type the prompts themselves.
+Stay in this shell for the rest of the lesson. The first invocation may compile
+Python.
 
-Every session begins with `!import random` and `!random.seed(0)`. This gives the
-same dice values: their actual sum is 20, but the buggy `answer()` returns 5.
-If you skip those commands, the dice values and their actual sum will differ.
+</details>
 
-All transcript blocks below are captured from actual Python 3.15.2 execution.
-Only installation-dependent paths are replaced: `<repo>` means the checkout's
-absolute path and `<stdlib>` means Python's standard-library directory. Those
-are path labels, not commands. Trailing whitespace is removed for Markdown.
-No debugger output lines or dice have been omitted.
-Line numbers, stop positions, commands, source listings, and values are the
-captured results, not reconstructed examples.
+## 1. Pause the program
 
-### Command reference
+Run this from the repository directory:
 
-| Command | What it does |
-| --- | --- |
-| `l` or `l 1, 13` | List source around the stop or a specified range. |
-| `ll` | List the current function's source. |
-| `s` | Step into a called function. A call event can stop at its definition or decorator. |
-| `n` | Execute the current line without stepping through called functions. |
-| `b 34` | Break at line 34 in the current file. |
-| `b dicegame/runner.py:18` | Break at a line in a specified file. |
-| `b` | List breakpoints. |
-| `cl 1` | Clear breakpoint number 1. |
-| `c` | Continue until a breakpoint or an exception. |
-| `r` | Run until the current function returns. |
-| `p expression` | Print a Python expression without mistaking it for a debugger command. |
-| `!statement` | Execute a Python statement in the selected frame. |
-| `help command` | Show debugger help, for example `help n`. |
-| `q` | Quit the current debugging session. |
+```sh
+python -m pdb main.py
+```
 
-The arrow marks the line about to execute, not a line that has already completed.
-For example, `c` is not defined while stopped **before** `c = 0`. Execute that
-assignment with `n` first. Use `p c` to inspect the variable: entering `c` by itself
-means **continue**, not "show the variable named c".
+The `(Pdb)` prompt means the debugger is waiting for a command. Type only the
+text after the prompt, not `(Pdb)` itself.
 
-## 3. Inspect the dice and the answer
+Enter `!import random`, then `!random.seed(0)`, then `c`. The `!` prefix runs a
+Python statement inside the debugger. The first two commands make the dice match
+this walkthrough. `c` means **continue**: let the program run
+until it reaches the `breakpoint()` already included in `main.py`.
 
-Start a fresh debugger session using the command above and follow this transcript
-from top to bottom. The important transitions are:
-
-1. `c` reaches the existing inline breakpoint at `main.py:8`. `n` advances to the
-   call at line 9. `s` enters `GameRunner.run()` at its call event on line 21.
-2. The next `n` stops before `c = 0` on line 25. Another `n` executes it and
-   reaches line 26. Now `p c` prints zero.
-3. Three more `n` commands create the runner, print the round, and reach the dice
-   display loop. `b 34` and `c` skip stepping through each dice-print operation.
-4. `b` shows the breakpoint hit count. `cl 1` removes it. The next `n` executes
-   the game input prompt. Enter `10`, deliberately less than the sum 20.
-5. Advance to line 37 and use `s` to enter `answer()`. Three `n` commands reach
-   the first addition at line 18. Inspect `die.value`, print it with an f-string,
-   and inspect its ASCII representation.
-6. Compare the actual sum, computed with `sum(die.value for die in self.dice)`,
-   with the result of `answer()`. `r` displays the returned value 5, and `p total`
-   confirms it. The dice total is 20, so the summation is wrong.
-
-<!-- transcript:inspect:start -->
+<!-- transcript:start:start -->
 ```text
 > <repo>/main.py(1)<module>()
 -> from dicegame.runner import GameRunner
@@ -123,20 +62,40 @@ It's really that easy
 What are you doing with your life.
 > <repo>/main.py(8)main()
 -> breakpoint()
-(Pdb) l 1, 13
-  1  	from dicegame.runner import GameRunner
-  2
-  3
+```
+<!-- transcript:start:end -->
+
+You're now paused inside `main()`. `<repo>` in the output stands for the path to
+your copy of the repository.
+
+## 2. See where you stopped
+
+Enter `l 4, 9`. The `l` command **lists source code**; here it shows lines 4 to 9.
+
+<!-- transcript:source:start -->
+```text
+(Pdb) l 4, 9
   4  	def main():
   5  	    print("Add the values of the dice")
   6  	    print("It's really that easy")
   7  	    print("What are you doing with your life.")
   8  ->	    breakpoint()
   9  	    GameRunner.run()
- 10
- 11
- 12  	if __name__ == "__main__":
- 13  	    main()
+```
+<!-- transcript:source:end -->
+
+The arrow marks the current line. The next line calls `GameRunner.run()`, which
+is where the game logic lives.
+
+## 3. Step into the game
+
+Enter `n`, then `s`:
+
+- `n` means **next**. It advances from the inline breakpoint to the next line.
+- `s` means **step**. It follows the call into `GameRunner.run()`.
+
+<!-- transcript:enter:start -->
+```text
 (Pdb) n
 > <repo>/main.py(9)main()
 -> GameRunner.run()
@@ -144,6 +103,16 @@ What are you doing with your life.
 --Call--
 > <repo>/dicegame/runner.py(21)run()
 -> @classmethod
+```
+<!-- transcript:enter:end -->
+
+`--Call--` means you've entered a function. In this Python version, that event
+points at the `@classmethod` decorator. The function body hasn't run yet.
+
+Enter `n` twice, then `p c`:
+
+<!-- transcript:next:start -->
+```text
 (Pdb) n
 > <repo>/dicegame/runner.py(25)run()
 -> c = 0
@@ -152,22 +121,56 @@ What are you doing with your life.
 -> while True:
 (Pdb) p c
 0
+```
+<!-- transcript:next:end -->
+
+The first `n` reaches `c = 0`; the second executes it. `p c` **prints the value**
+of the variable. Don't enter `c` alone to inspect it: that would continue running
+the program.
+
+## 4. Inspect the dice
+
+Enter `n` twice to create the game runner. Then enter
+`p [die.value for die in runner.dice]` to see its dice values.
+
+<!-- transcript:create:start -->
+```text
 (Pdb) n
 > <repo>/dicegame/runner.py(27)run()
 -> runner = cls()
 (Pdb) n
 > <repo>/dicegame/runner.py(29)run()
 -> print("Round {}\n".format(runner.round))
-(Pdb) n
-Round 1
+(Pdb) p [die.value for die in runner.dice]
+[6, 5, 3, 2, 4]
+```
+<!-- transcript:create:end -->
 
-> <repo>/dicegame/runner.py(31)run()
--> for die in runner.dice:
-(Pdb) p len(runner.dice)
-5
+The dice are **6, 5, 3, 2, 4**. Their sum is **20**. Remember that number for the
+guess prompt.
+
+## 5. Skip ahead to the guess prompt
+
+Rather than step through every dice-printing operation, set a **breakpoint** at
+the input line:
+
+1. Enter `b 34` to break at line 34 of the current file, `dicegame/runner.py`.
+2. Enter `c` to continue to that line.
+3. Enter `cl 1` to clear breakpoint number 1 once you've reached it.
+
+The game prints the dice and stops **before** asking for a guess. The current
+line should be `guess = input("Sigh. What is your guess?: ")` on line 34.
+
+<details>
+<summary>Check the output, including the dice display</summary>
+
+<!-- transcript:input-break:start -->
+```text
 (Pdb) b 34
 Breakpoint 1 at <repo>/dicegame/runner.py:34
 (Pdb) c
+Round 1
+
 ---------
 |*     *|
 |*     *|
@@ -195,16 +198,37 @@ Breakpoint 1 at <repo>/dicegame/runner.py:34
 ---------
 > <repo>/dicegame/runner.py(34)run()
 -> guess = input("Sigh. What is your guess?: ")
-(Pdb) b
-Num Type         Disp Enb   Where
-1   breakpoint   keep yes   at <repo>/dicegame/runner.py:34
-	breakpoint already hit 1 time
 (Pdb) cl 1
 Deleted breakpoint 1 at <repo>/dicegame/runner.py:34
+```
+<!-- transcript:input-break:end -->
+
+</details>
+
+## 6. Enter the correct total
+
+Enter `n` to execute the input line. When the **game** asks for your guess, enter
+`20`. This is game input, not a debugger command.
+
+<!-- transcript:guess:start -->
+```text
 (Pdb) n
-Sigh. What is your guess?: 10
+Sigh. What is your guess?: 20
 > <repo>/dicegame/runner.py(35)run()
 -> guess = int(guess)
+```
+<!-- transcript:guess:end -->
+
+You're back at `(Pdb)`, just before the guess is converted from text to an
+integer.
+
+## 7. Find how the answer is calculated
+
+Enter `n` to convert the guess. Then enter `s` to step into the `answer()` call
+on the comparison line.
+
+<!-- transcript:answer-call:start -->
+```text
 (Pdb) n
 > <repo>/dicegame/runner.py(37)run()
 -> if guess == runner.answer():
@@ -212,6 +236,14 @@ Sigh. What is your guess?: 10
 --Call--
 > <repo>/dicegame/runner.py(15)answer()
 -> def answer(self):
+```
+<!-- transcript:answer-call:end -->
+
+Enter `n` three times to reach the first addition in the loop. Then use
+`p die.value` to inspect the die being processed.
+
+<!-- transcript:answer-body:start -->
+```text
 (Pdb) n
 > <repo>/dicegame/runner.py(16)answer()
 -> total = 0
@@ -223,10 +255,22 @@ Sigh. What is your guess?: 10
 -> total += 1
 (Pdb) p die.value
 6
-(Pdb) !print(f"die value: {die.value}")
-die value: 6
-(Pdb) p die.show()
-'---------\n|*     *|\n|*     *|\n|*     *|\n---------'
+```
+<!-- transcript:answer-body:end -->
+
+The die's value is **6**, but line 18 says **`total += 1`**. That looks suspicious:
+it counts each die instead of adding the number shown on it.
+
+## 8. Check the function's result
+
+Enter `p sum(die.value for die in self.dice)` to calculate the actual total.
+Then enter `r`, followed by `p total`.
+
+`r` means **return**: finish this function without stepping through the rest of
+its loop.
+
+<!-- transcript:return:start -->
+```text
 (Pdb) p sum(die.value for die in self.dice)
 20
 (Pdb) r
@@ -235,165 +279,28 @@ die value: 6
 -> return total
 (Pdb) p total
 5
-(Pdb) q
-Quitting pdb will kill the process. Quit anyway? [y/n] y
-The program exited via sys.exit(). Exit status: 1
-The program finished and will be restarted
-> <repo>/main.py(1)<module>()
--> from dicegame.runner import GameRunner
-(Pdb) q
 ```
-<!-- transcript:inspect:end -->
+<!-- transcript:return:end -->
 
-### Identify the summation bug
+There's the first bug: the dice add up to **20**, but `answer()` returns **5**.
+It adds one for each of the five dice, regardless of their values.
 
-At line 18, `total += 1` increments the total once per die, regardless of its
-value. With five dice, the result is always 5. A fix would add `die.value`
-instead of `1`. The exercise deliberately leaves that change for you to make.
-Complete the remaining baseline sessions before editing if you want their
-captured output to match exactly.
+Keep the source unchanged for now so you can continue this same session.
 
-The `!` prefix in the f-string example tells the debugger to execute a Python
-statement. `p die.show()` instead displays the string representation, including
-escaped newlines. Use `!print(die.show())` to display it as a multiline die.
+## 9. Trigger the replay bug
 
-When quitting from the inline debugger, Python asks for confirmation. After `y`,
-the command-line debugger reports the script's exit status and restarts at line
-1. Enter `q` again at that outer prompt to return to the shell. That restart
-message is debugger behavior, not another game bug.
+Enter `c` to let the game finish checking your guess. It incorrectly says the
+answer is 5. At `Would you like to play again?[Y/n]:`, enter uppercase **`Y`**.
 
-## 4. Run a command each time a breakpoint is hit
+The game crashes with `UnnecessaryError`. Since you launched it under `pdb`,
+you're returned to a debugger prompt at the line that raised the exception.
 
-Start a **new** session with the same shell command. First reach the inline
-breakpoint with `c`, then create the line-18 breakpoint and its command list in
-that active debugger. `commands 1` changes the prompt to `(com)` until `end`.
+<details>
+<summary>Check the exception output</summary>
 
-At line 18, `total` has already been initialized, and the loop has selected a
-die, but that die has not yet been counted. The command list prints `0`
-on the first hit and `1` on the second. It is counting dice, not summing their
-values. `c` resumes from each hit. We clear the breakpoint before quitting.
-
-<!-- transcript:commands:start -->
+<!-- transcript:crash:start -->
 ```text
-> <repo>/main.py(1)<module>()
--> from dicegame.runner import GameRunner
-(Pdb) !import random
-(Pdb) !random.seed(0)
 (Pdb) c
-Add the values of the dice
-It's really that easy
-What are you doing with your life.
-> <repo>/main.py(8)main()
--> breakpoint()
-(Pdb) b dicegame/runner.py:18
-Breakpoint 1 at <repo>/dicegame/runner.py:18
-(Pdb) commands 1
-(com) p total
-(com) end
-(Pdb) c
-Round 1
-
----------
-|*     *|
-|*     *|
-|*     *|
----------
----------
-|*     *|
-|   *   |
-|*     *|
----------
----------
-|*      |
-|   *   |
-|      *|
----------
----------
-|*      |
-|       |
-|      *|
----------
----------
-|*     *|
-|       |
-|*     *|
----------
-Sigh. What is your guess?: 10
-0
-> <repo>/dicegame/runner.py(18)answer()
--> total += 1
-(Pdb) c
-1
-> <repo>/dicegame/runner.py(18)answer()
--> total += 1
-(Pdb) cl 1
-Deleted breakpoint 1 at <repo>/dicegame/runner.py:18
-(Pdb) q
-Quitting pdb will kill the process. Quit anyway? [y/n] y
-The program exited via sys.exit(). Exit status: 1
-The program finished and will be restarted
-> <repo>/main.py(1)<module>()
--> from dicegame.runner import GameRunner
-(Pdb) q
-```
-<!-- transcript:commands:end -->
-
-This lets you inspect a loop without repeatedly typing the same expression.
-Keep breakpoint numbers session-specific: each fresh session here starts with
-breakpoint 1 rather than borrowing a number from an earlier run.
-
-## 5. Diagnose the uppercase-Y exception
-
-Start another **new** session. Seed the random generator, use `c` to reach the
-inline breakpoint, then `c` again to run the game. Enter `10` and then uppercase
-`Y` at the game's replay prompt.
-
-The game reports the wrong guess normally, then raises `UnnecessaryError`
-instead of accepting `Y`. Because the game is running under `python -m pdb`,
-the debugger enters post-mortem inspection automatically. Inspect `some_value`
-and `value` in the raising function, then use `q` to exit.
-
-<!-- transcript:postmortem:start -->
-```text
-> <repo>/main.py(1)<module>()
--> from dicegame.runner import GameRunner
-(Pdb) !import random
-(Pdb) !random.seed(0)
-(Pdb) c
-Add the values of the dice
-It's really that easy
-What are you doing with your life.
-> <repo>/main.py(8)main()
--> breakpoint()
-(Pdb) c
-Round 1
-
----------
-|*     *|
-|*     *|
-|*     *|
----------
----------
-|*     *|
-|   *   |
-|*     *|
----------
----------
-|*      |
-|   *   |
-|      *|
----------
----------
-|*      |
-|       |
-|      *|
----------
----------
-|*     *|
-|       |
-|*     *|
----------
-Sigh. What is your guess?: 10
 Sorry that's wrong
 The answer is: 5
 Like seriously, how could you mess that up
@@ -426,78 +333,98 @@ Uncaught exception. Entering post mortem debugging
 Running 'cont' or 'step' will restart the program
 > <repo>/dicegame/utils.py(11)i_just_throw_an_exception()
 -> raise UnnecessaryError("You actually called this function...")
+```
+<!-- transcript:crash:end -->
+
+`<stdlib>` stands for Python's standard-library directory.
+
+</details>
+
+You can now inspect the state left behind by the crash. This is called
+**post-mortem debugging**. It does not resume the failed game.
+
+## 10. Look at the caller
+
+First enter `p some_value` to inspect a variable in the function that raised the
+exception. Then enter `u`, short for **up**, to move to the function that called
+it: `GameRunner.run()`.
+
+Enter `p prompt` to inspect the replay response, followed by `l 55, 60` to read
+the condition that handles it.
+
+<!-- transcript:inspect-crash:start -->
+```text
 (Pdb) p some_value
 "I don't know what you were expecting"
-(Pdb) p value
-1
+(Pdb) u
+> <repo>/dicegame/runner.py(60)run()
+-> i_just_throw_an_exception()
+(Pdb) p prompt
+'Y'
+(Pdb) l 55, 60
+ 55  	            prompt = input("Would you like to play again?[Y/n]: ")
+ 56
+ 57  	            if prompt == 'y' or prompt == '':
+ 58  	                continue
+ 59  	            else:
+ 60  ->	                i_just_throw_an_exception()
+```
+<!-- transcript:inspect-crash:end -->
+
+`prompt` is `'Y'`, but the condition accepts only lowercase `'y'` or an empty
+string. Uppercase `'Y'` falls into the exception branch. That's the second bug.
+
+Enter `q` to **quit** the debugger and return to your shell.
+
+<!-- transcript:quit:start -->
+```text
 (Pdb) q
 ```
-<!-- transcript:postmortem:end -->
+<!-- transcript:quit:end -->
 
-Post-mortem inspection exposes the state retained by the traceback. It does
-**not** resume the failed game. In this mode, the debugger explicitly says that
-`cont` or `step` will restart the program.
+## Try the fixes
 
-### Find the cause and make a fix
+Now that the session is over, edit `dicegame/runner.py`:
 
-Read `dicegame/runner.py`, especially the replay condition on line 57. It accepts
-lowercase `'y'` and the empty string, but uppercase `'Y'` goes to the exception
-branch. A useful replacement for the replay condition and its branches is:
+1. In `answer()`, change `total += 1` to `total += die.value`.
+2. In the replay condition, compare `prompt.lower()` with `'y'` so either case is
+   accepted. For other responses, exit the loop instead of raising an exception.
 
-```python
-if prompt.lower() in {"y", ""}:
-    continue
-else:
-    break
-```
+Run `python main.py` to try the changes. It pauses at the existing inline
+breakpoint; enter `c` to play. Enter the total displayed by the dice, then `Y`
+to check that both fixes work. The dice are random in this new run, so don't
+assume the answer is still 20.
 
-This accepts either case and exits normally for other responses. These lines
-are a suggested edit, not an edit already applied to the exercise files. Once
-you change source, its behavior can differ from the pre-fix transcripts. Start
-a new process to test your change.
+**One more bug to investigate:** play several rounds and watch the round number
+and win count. Why do they reset? Use what you've learned to inspect where a new
+`GameRunner` is created. The `solutions/` directory contains a reference version
+if you get stuck.
 
-For the round-counter bug, find `runner = cls()` inside the `while True` loop.
-That constructs a new runner, whose constructor calls `reset()`, on every round.
-Move the construction before the loop to preserve the score and round number.
-Think separately about when the dice should be rerolled. The `solutions/`
-directory provides a reference implementation, and the tests exercise its
-six-consecutive-win path.
+## Commands you've used
 
-For post-mortem debugging in your own code, `pdb.post_mortem()` can be called
-inside an exception handler. At an interactive Python prompt, `pdb.pm()` instead
-uses the last unhandled exception. These are alternative entry points, not
-additional steps required for the captured session above.
+| Command | Purpose |
+| --- | --- |
+| `l first, last` | Read a range of source lines. |
+| `n` | Execute the next line without stepping into its calls. |
+| `s` | Step into a function call. |
+| `p expression` | Print the value of an expression. |
+| `b line` | Set a breakpoint. |
+| `cl number` | Clear a breakpoint. |
+| `c` | Continue running. |
+| `r` | Run until the current function returns. |
+| `u` | Inspect the calling function's frame. |
+| `q` | Quit. |
 
-## 6. Keep the tutorial verifiable
+## Next steps
 
-From a clean, unedited exercise snapshot, run:
+- [Breakpoint command lists](docs/advanced.md): automatically inspect a variable
+  each time a breakpoint is hit.
+- [Contributing](CONTRIBUTING.md): run checks or regenerate the captured output.
+- [Full lesson transcript](docs/session.txt): the uninterrupted session without
+  the explanations.
 
-```sh
-python -m unittest discover -s tests -v
-python tools/render_walkthrough.py --check
-```
+## Credits
 
-The second command executes all three sessions and compares their entire output
-with the README blocks. It fails if commands, line numbers, or output drift.
-It requires exactly Python 3.15.2. The capture wrapper echoes supplied input as
-a terminal would, but leaves the debugger, program, and source files unchanged.
-
-Maintainers can deliberately refresh the blocks after changing the exercise:
-
-```sh
-python tools/render_walkthrough.py
-```
-
-After regeneration, also review the prose against the new stop positions and
-results. GitHub Actions runs the tests and transcript comparison on Python
-3.15.2. A learner who edits the exercise is expected to change its output, so
-the transcript check is a baseline maintenance check, not a restriction on
-solving the bugs.
-
-## Credits and translations
-
-This fork builds on the original `spiside/pdb-tutorial` dice-game debugging
-exercise. Community translations of the original tutorial are available in
-Korean (`mingrammer/pdb-tutorial`), Chinese (`MartinLwx/pdb-tutorial`), and
-Russian (`0xfadeef/pdb-tutorial`). These translations cover the original tutorial
-and may differ from the Python 3.15.2 walkthrough here.
+Based on the original `spiside/pdb-tutorial` dice-game exercise. Community
+translations of the original are available in Korean (`mingrammer/pdb-tutorial`),
+Chinese (`MartinLwx/pdb-tutorial`), and Russian (`0xfadeef/pdb-tutorial`).

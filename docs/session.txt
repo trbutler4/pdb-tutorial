@@ -1,0 +1,152 @@
+> <repo>/main.py(1)<module>()
+-> from dicegame.runner import GameRunner
+(Pdb) !import random
+(Pdb) !random.seed(0)
+(Pdb) c
+Add the values of the dice
+It's really that easy
+What are you doing with your life.
+> <repo>/main.py(8)main()
+-> breakpoint()
+(Pdb) l 4, 9
+  4  	def main():
+  5  	    print("Add the values of the dice")
+  6  	    print("It's really that easy")
+  7  	    print("What are you doing with your life.")
+  8  ->	    breakpoint()
+  9  	    GameRunner.run()
+(Pdb) n
+> <repo>/main.py(9)main()
+-> GameRunner.run()
+(Pdb) s
+--Call--
+> <repo>/dicegame/runner.py(21)run()
+-> @classmethod
+(Pdb) n
+> <repo>/dicegame/runner.py(25)run()
+-> c = 0
+(Pdb) n
+> <repo>/dicegame/runner.py(26)run()
+-> while True:
+(Pdb) p c
+0
+(Pdb) n
+> <repo>/dicegame/runner.py(27)run()
+-> runner = cls()
+(Pdb) n
+> <repo>/dicegame/runner.py(29)run()
+-> print("Round {}\n".format(runner.round))
+(Pdb) p [die.value for die in runner.dice]
+[6, 5, 3, 2, 4]
+(Pdb) b 34
+Breakpoint 1 at <repo>/dicegame/runner.py:34
+(Pdb) c
+Round 1
+
+---------
+|*     *|
+|*     *|
+|*     *|
+---------
+---------
+|*     *|
+|   *   |
+|*     *|
+---------
+---------
+|*      |
+|   *   |
+|      *|
+---------
+---------
+|*      |
+|       |
+|      *|
+---------
+---------
+|*     *|
+|       |
+|*     *|
+---------
+> <repo>/dicegame/runner.py(34)run()
+-> guess = input("Sigh. What is your guess?: ")
+(Pdb) cl 1
+Deleted breakpoint 1 at <repo>/dicegame/runner.py:34
+(Pdb) n
+Sigh. What is your guess?: 20
+> <repo>/dicegame/runner.py(35)run()
+-> guess = int(guess)
+(Pdb) n
+> <repo>/dicegame/runner.py(37)run()
+-> if guess == runner.answer():
+(Pdb) s
+--Call--
+> <repo>/dicegame/runner.py(15)answer()
+-> def answer(self):
+(Pdb) n
+> <repo>/dicegame/runner.py(16)answer()
+-> total = 0
+(Pdb) n
+> <repo>/dicegame/runner.py(17)answer()
+-> for die in self.dice:
+(Pdb) n
+> <repo>/dicegame/runner.py(18)answer()
+-> total += 1
+(Pdb) p die.value
+6
+(Pdb) p sum(die.value for die in self.dice)
+20
+(Pdb) r
+--Return--
+> <repo>/dicegame/runner.py(19)answer()->5
+-> return total
+(Pdb) p total
+5
+(Pdb) c
+Sorry that's wrong
+The answer is: 5
+Like seriously, how could you mess that up
+Wins: 0 Loses 1
+Would you like to play again?[Y/n]: Y
+Traceback (most recent call last):
+  File "<stdlib>/pdb.py", line 3873, in main
+    pdb._run(target)
+    ~~~~~~~~^^^^^^^^
+  File "<stdlib>/pdb.py", line 2770, in _run
+    self.run(target.code)
+    ~~~~~~~~^^^^^^^^^^^^^
+  File "<stdlib>/bdb.py", line 912, in run
+    exec(cmd, globals, locals)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 1, in <module>
+  File "<repo>/main.py", line 13, in <module>
+    main()
+    ~~~~^^
+  File "<repo>/main.py", line 9, in main
+    GameRunner.run()
+    ~~~~~~~~~~~~~~^^
+  File "<repo>/dicegame/runner.py", line 60, in run
+    i_just_throw_an_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "<repo>/dicegame/utils.py", line 11, in i_just_throw_an_exception
+    raise UnnecessaryError("You actually called this function...")
+dicegame.utils.UnnecessaryError: You actually called this function...
+Uncaught exception. Entering post mortem debugging
+Running 'cont' or 'step' will restart the program
+> <repo>/dicegame/utils.py(11)i_just_throw_an_exception()
+-> raise UnnecessaryError("You actually called this function...")
+(Pdb) p some_value
+"I don't know what you were expecting"
+(Pdb) u
+> <repo>/dicegame/runner.py(60)run()
+-> i_just_throw_an_exception()
+(Pdb) p prompt
+'Y'
+(Pdb) l 55, 60
+ 55  	            prompt = input("Would you like to play again?[Y/n]: ")
+ 56
+ 57  	            if prompt == 'y' or prompt == '':
+ 58  	                continue
+ 59  	            else:
+ 60  ->	                i_just_throw_an_exception()
+(Pdb) q
