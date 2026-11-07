@@ -371,7 +371,8 @@ assume the answer is still 20.
 
 **One more bug to investigate:** play several rounds and watch the round number
 and win count. Why do they reset? Use what you've learned to inspect where a new
-`GameRunner` is created.
+`GameRunner` is created. The `solutions/` directory contains a reference version
+if you get stuck.
 
 ## Commands you've used
 
