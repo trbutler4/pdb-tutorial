@@ -22,7 +22,8 @@ Check that the last command reports Python 3.14.
 <details>
 <summary>Using Nix instead of an installed Python</summary>
 
-On x86_64 Linux with flakes enabled, the repository provides a pinned interpreter:
+On Linux (x86-64 or ARM64) or Apple Silicon macOS with flakes enabled,
+the repository provides a pinned interpreter:
 
 ```sh
 nix develop

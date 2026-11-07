@@ -2,8 +2,9 @@
 
 ## Development environment
 
-Use Python 3.14.8 to reproduce the captured output. On x86_64 Linux with Nix
-flakes enabled, `nix develop` provides the standard `python314` package.
+Use Python 3.14.8 to reproduce the captured output. On Linux (x86-64 or ARM64)
+or Apple Silicon macOS with Nix flakes enabled, `nix develop` provides the
+standard `python314` package.
 `flake.lock` pins the package collection for reproducibility.
 
 The main exercise deliberately contains bugs. Keep those bugs in place when
